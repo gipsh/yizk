@@ -11,11 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb.Block, pageId string) (*model.YizkPage, error) {
+func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb.Block, pageId string, pageNum int) (*model.YizkPage, error) {
 
 	page := model.YizkPage{
 		Filename: originalImage,
 		Id:       pageId,
+		Order:    pageNum,
 	}
 
 	for _, block := range blocks {

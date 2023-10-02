@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gipsh/yizk/model"
 	"github.com/gipsh/yizk/ocr"
@@ -23,7 +25,7 @@ func NewMetadataTranslator(log *zap.Logger, ts *TranslatorService) *MetadataTran
 }
 
 // Read a metadata OcrPage json file and translate the text
-func (mdt *MetadataTranslator) TranslatePage(ctx context.Context, filename string, ts *TranslatorService) error {
+func (mdt *MetadataTranslator) TranslatePage(ctx context.Context, filename string) error {
 
 	file, _ := os.ReadFile(filename)
 
@@ -34,7 +36,7 @@ func (mdt *MetadataTranslator) TranslatePage(ctx context.Context, filename strin
 	}
 
 	for i, block := range page.Blocks {
-		translatedText, err := ts.Translate(ctx, block.Text)
+		translatedText, err := mdt.ts.Translate(ctx, block.Text)
 		if err != nil {
 			return err
 		}
@@ -43,5 +45,27 @@ func (mdt *MetadataTranslator) TranslatePage(ctx context.Context, filename strin
 
 	// save to file
 	return ocr.WriteMetadataFile(filename, &page)
+
+}
+
+func (mdt *MetadataTranslator) TranslateFolder(ctx context.Context, folder string) error {
+
+	files, err := os.ReadDir(folder)
+	if err != nil {
+		mdt.log.Error("Error reading folder", zap.String("folder", folder), zap.Error(err))
+		return err
+	}
+
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
+			mdt.log.Info("Processing file", zap.String("fileName", f.Name()))
+			err = mdt.TranslatePage(ctx, filepath.Join(folder, f.Name()))
+			if err != nil {
+				mdt.log.Error("Error translating file", zap.String("fileName", f.Name()), zap.Error(err))
+			}
+		}
+	}
+
+	return nil
 
 }

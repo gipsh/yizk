@@ -9,6 +9,7 @@ import (
 
 	vision "cloud.google.com/go/vision/apiv1"
 	"cloud.google.com/go/vision/v2/apiv1/visionpb"
+	"github.com/gipsh/yizk/model"
 	"google.golang.org/api/option"
 
 	"go.uber.org/zap"
@@ -31,7 +32,39 @@ func NewOcrService(ctx context.Context, log *zap.Logger, credFile string) (*OcrS
 	}, nil
 }
 
-func (ocr *OcrService) Process(ctx context.Context, fileName string, pageId string) error {
+func (ocr *OcrService) ProcessByFolder(ctx context.Context, folder string) error {
+	ocr.log.Info("Processing folder", zap.String("folder", folder))
+
+	files, err := os.ReadDir(folder)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
+			ocr.log.Info("Processing file", zap.String("fileName", f.Name()))
+			err = ocr.ProcessByMetadataFile(ctx, filepath.Join(folder, f.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ocr *OcrService) ProcessByMetadataFile(ctx context.Context, fileName string) error {
+	page, err := model.ReadMetadata(fileName)
+	if err != nil {
+		return err
+	}
+
+	ocr.log.Info("Processing file", zap.String("fileName", fileName))
+
+	return ocr.Process(ctx, page.Filename, page.Id, page.Order)
+}
+
+func (ocr *OcrService) Process(ctx context.Context, fileName string, pageId string, pageNum int) error {
 	ocr.log.Info("Processing file", zap.String("fileName", fileName))
 
 	f, err := os.Open(fileName)
@@ -65,7 +98,7 @@ func (ocr *OcrService) Process(ctx context.Context, fileName string, pageId stri
 	ocr.log.Info("Saving text to file", zap.String("fileName", metadataFile))
 
 	// save metadata to file
-	md, err := ocr.generateMetadata(fileName, ta.GetPages()[0].Blocks, pageId)
+	md, err := ocr.generateMetadata(fileName, ta.GetPages()[0].Blocks, pageId, pageNum)
 	if err != nil {
 		return err
 	}

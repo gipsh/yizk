@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"os"
+)
+
 type YizkPoint struct {
 	X int `json:"x"`
 	Y int `json:"y"`
@@ -20,4 +25,19 @@ type YizkPage struct {
 	Blocks   []YizkBlock `json:"blocks"`
 	Filename string      `json:"filename"`
 	Order    int         `json:"order"`
+}
+
+func ReadMetadata(filename string) (*YizkPage, error) {
+	file, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var page YizkPage
+	err = json.Unmarshal([]byte(file), &page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &page, nil
 }

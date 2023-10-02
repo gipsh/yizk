@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gipsh/yizk/model"
+	"github.com/gipsh/yizk/ocr"
 	"go.uber.org/zap"
 )
 
@@ -35,18 +37,18 @@ func (pd *PageDownloader) Start() {
 		return
 	}
 
-	for i := pd.initialPage; i <= pd.initialPage+pd.pages; i++ {
-		err := pd.DownloadPage(i)
+	for i, idx := pd.initialPage, 1; i <= pd.initialPage+pd.pages; i, idx = i+1, idx+1 {
+		err := pd.DownloadPage(i, idx)
 		if err != nil {
 			pd.log.Info("Error downloading page", zap.Int("page", i), zap.Error(err))
 		}
 	}
 }
 
-func (pd *PageDownloader) DownloadPage(pageIdx int) error {
+func (pd *PageDownloader) DownloadPage(pageIdx int, pageNum int) error {
 	pd.log.Info("Downloading page", zap.Int("page", pageIdx))
 
-	filepath := "tmp/" + pd.bookName + "/" + fmt.Sprintf("%d.png", pageIdx)
+	filepath := "tmp/" + pd.bookName + "/" + fmt.Sprintf("%d.jpg", pageIdx)
 
 	// first check if file exists and skip
 	if _, err := os.Stat(filepath); !errors.Is(err, os.ErrNotExist) {
@@ -79,5 +81,20 @@ func (pd *PageDownloader) DownloadPage(pageIdx int) error {
 	if err != nil {
 		return err
 	}
-	return nil
+
+	// create metadata file
+	return pd.InitMetadataFile(pageIdx, pageNum, filepath)
+}
+
+func (pd *PageDownloader) InitMetadataFile(pageIdx int, pageNumber int, imageFile string) error {
+
+	filepath := "tmp/" + pd.bookName + "/" + fmt.Sprintf("%d.json", pageIdx)
+	metadata := model.YizkPage{
+		Order:    pageNumber,
+		Id:       fmt.Sprintf("%d", pageIdx),
+		Filename: imageFile,
+	}
+
+	return ocr.WriteMetadataFile(filepath, &metadata)
+
 }

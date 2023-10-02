@@ -47,6 +47,27 @@ func (mr *MetadataRenderer) MeasureString(s string) (w, h float64) {
 	return float64(a >> 6), mr.fontHeight()
 }
 
+func (mr *MetadataRenderer) RenderFolder(folder string) error {
+
+	files, err := os.ReadDir(folder)
+	if err != nil {
+		mr.log.Error("Error reading folder", zap.String("folder", folder), zap.Error(err))
+		return err
+	}
+
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
+			mr.log.Info("Processing file", zap.String("fileName", f.Name()))
+			err = mr.RenderPage(filepath.Join(folder, f.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (mr *MetadataRenderer) RenderPage(filename string) error {
 
 	file, err := os.ReadFile(filename)
@@ -66,9 +87,11 @@ func (mr *MetadataRenderer) RenderPage(filename string) error {
 		return err
 	}
 
+	b := (*img).Bounds()
+
 	// copy content of original image into new image
-	newImage := image.NewRGBA((*img).Bounds())
-	draw.Draw(newImage, (*img).Bounds(), *img, image.Point{X: 0, Y: 0}, draw.Src)
+	newImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(newImage, (*img).Bounds(), *img, b.Min, draw.Src)
 
 	for _, block := range page.Blocks {
 		rect := image.Rectangle{}
@@ -79,7 +102,8 @@ func (mr *MetadataRenderer) RenderPage(filename string) error {
 		rect.Min = image.Point{X: block.UpperLeftPoint.X, Y: block.UpperLeftPoint.Y}
 		rect.Max = image.Point{X: block.BottomRightPoint.X, Y: block.BottomRightPoint.Y}
 
-		draw.Draw(newImage, rect, *img, image.Point{X: 0, Y: 0}, draw.Src)
+		white := color.RGBA{255, 255, 255, 255}
+		draw.Draw(newImage, rect.Bounds(), image.NewUniform(white), image.Point{X: 0, Y: 0}, draw.Over)
 
 		//mr.addLabelWrapped(newImage, block.Points[1].X, block.Points[1].Y, block.Points[0].X, block.TranslatedText)
 		mr.addLabelWrapped(newImage, block.UpperLeftPoint.X, block.UpperLeftPoint.Y, block.BottomRightPoint.X, block.TranslatedText)

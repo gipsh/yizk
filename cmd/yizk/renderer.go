@@ -16,27 +16,36 @@ var renderCmd = &cobra.Command{
 	Looks into the translated metadata json file and using the image will try to redraw the page with the translated text.`,
 	//	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
 
-		err := doRender(initialPage, pages, bookName)
-		if err != nil {
-			log.Fatalln("The timezone string is invalid")
+		if metadataFile != "" {
+			fmt.Println("hola")
+			err := executeRenderByMetadataFile(metadataFile)
+			if err != nil {
+				log.Fatalln("Error rendering file", metadataFile)
+			}
+			return
 		}
+
+		if metadataFolder != "" {
+			err := executeRenderByMetadataFolder(metadataFolder)
+			if err != nil {
+				log.Fatalln("Error rendering folder", metadataFolder)
+			}
+			return
+		}
+
 		fmt.Println("Done")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(renderCmd)
-	renderCmd.Flags().StringVarP(&bookName, "book", "b", "", "path to the book folder with downloaded images")
-	renderCmd.Flags().IntVarP(&initialPage, "initial-page", "i", 0, "initial page number to start processing")
-	renderCmd.Flags().IntVarP(&pages, "pages", "p", 0, "number of pages to process")
-	renderCmd.MarkFlagRequired("book")
-	renderCmd.MarkFlagRequired("initial-page")
-	renderCmd.MarkFlagRequired("pages")
+	renderCmd.Flags().StringVarP(&metadataFile, "file", "m", "", "fullpath of json metadata file. If provided, will only process this file")
+	renderCmd.Flags().StringVarP(&metadataFolder, "folder", "f", "", "fullpath of folder with json metadata files. If provided, will only process this folder")
+	renderCmd.MarkFlagsMutuallyExclusive("file", "folder")
 }
 
-func doRender(initialPage int, pages int, bookName string) error {
+func getRenderService() *renderer.MetadataRenderer {
 
 	log, err := zap.NewDevelopment()
 	if err != nil {
@@ -45,13 +54,30 @@ func doRender(initialPage int, pages int, bookName string) error {
 
 	renderService := renderer.NewMetadataRenderer(log)
 
-	for i := initialPage; i <= initialPage+pages; i++ {
-		err := renderService.RenderPage("tmp/" + bookName + "/" + fmt.Sprintf("%d.json.json", i))
-		if err != nil {
-			log.Info("Error rendering page", zap.Int("page", i), zap.Error(err))
-		}
+	return renderService
+}
+
+func executeRenderByMetadataFile(metadataFile string) error {
+
+	renderService := getRenderService()
+
+	err := renderService.RenderPage(metadataFile)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
 	}
 
 	return nil
+}
 
+func executeRenderByMetadataFolder(metadataFolder string) error {
+
+	renderService := getRenderService()
+
+	err := renderService.RenderFolder(metadataFolder)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -3,7 +3,6 @@ package yizk
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/gipsh/yizk/ocr"
 	"github.com/spf13/cobra"
@@ -17,12 +16,19 @@ var ocrCmd = &cobra.Command{
 	Looks into the download folder and for every page tries to OCR the text and save it as a json file.`,
 	//	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
 
-		err := doOCR(initialPage, pages, bookName)
-		if err != nil {
-			log.Fatalln("The timezone string is invalid")
+		ctx := context.Background()
+
+		if metadataFile != "" {
+			executeOcrByMetadataFile(ctx, metadataFile)
+			return
 		}
+
+		if metadataFolder != "" {
+			executeOcrByMetadataFolder(ctx, metadataFolder)
+			return
+		}
+
 		fmt.Println("Done")
 	},
 }
@@ -30,20 +36,17 @@ var ocrCmd = &cobra.Command{
 var bookName string
 var initialPage int
 var pages int
+var metadataFile string
+var metadataFolder string
 
 func init() {
 	rootCmd.AddCommand(ocrCmd)
-	ocrCmd.Flags().StringVarP(&bookName, "book", "b", "", "path to the book folder with downloaded images")
-	ocrCmd.Flags().IntVarP(&initialPage, "initial-page", "i", 0, "initial page number to start processing")
-	ocrCmd.Flags().IntVarP(&pages, "pages", "p", 0, "number of pages to process")
-	ocrCmd.MarkFlagRequired("book")
-	ocrCmd.MarkFlagRequired("initial-page")
-	ocrCmd.MarkFlagRequired("pages")
+	ocrCmd.Flags().StringVarP(&metadataFile, "file", "m", "", "fullpath of json metadata file. If provided, will only process this file")
+	ocrCmd.Flags().StringVarP(&metadataFolder, "folder", "f", "", "fullpath of folder with json metadata files. If provided, will only process this folder")
+
 }
 
-func doOCR(initialPage int, pages int, bookName string) error {
-
-	ctx := context.Background()
+func getOcrService(ctx context.Context) *ocr.OcrService {
 	log, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
@@ -54,13 +57,19 @@ func doOCR(initialPage int, pages int, bookName string) error {
 		panic(err)
 	}
 
-	for i := initialPage; i <= initialPage+pages; i++ {
-		err := ocrService.Process(ctx, "tmp/"+bookName+"/"+fmt.Sprintf("%d.png", i), fmt.Sprintf("%d", i))
-		if err != nil {
-			log.Info("Error ocr'ing page", zap.Int("page", i), zap.Error(err))
-		}
-	}
+	return ocrService
+}
 
-	return nil
+func executeOcrByMetadataFile(ctx context.Context, file string) error {
+
+	ocrService := getOcrService(ctx)
+	return ocrService.ProcessByMetadataFile(ctx, file)
+
+}
+
+func executeOcrByMetadataFolder(ctx context.Context, folder string) error {
+
+	ocrService := getOcrService(ctx)
+	return ocrService.ProcessByFolder(ctx, folder)
 
 }
