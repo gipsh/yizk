@@ -163,6 +163,7 @@ func (ocr *OcrService) isValidLang(langs []*visionpb.TextAnnotation_DetectedLang
 		if lang != nil {
 			if lang.GetLanguageCode() == "he" ||
 				lang.GetLanguageCode() == "en" ||
+				lang.GetLanguageCode() == "iw" ||
 				lang.GetLanguageCode() == "yi" {
 				return true
 			}

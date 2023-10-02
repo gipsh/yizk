@@ -38,17 +38,13 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 			pblock.UpperLeftPoint = model.YizkPoint{X: int(minX), Y: int(minY)}
 			pblock.BottomRightPoint = model.YizkPoint{X: int(maxX), Y: int(maxY)}
 
-			// p1 := model.YizkPoint{X: int(maxX), Y: int(maxY)}
-			// p2 := model.YizkPoint{X: int(minX), Y: int(minY)}
-			// pblock.Points = append(pblock.Points, p1, p2)
-
 			langs := block.GetProperty().GetDetectedLanguages()
 			if len(langs) > 0 {
 				pblock.OriginLanguage = langs[0].GetLanguageCode()
 			}
 
+			// TODO: add language/confidence histogram to block
 			for _, paragraph := range block.Paragraphs {
-				//sb.WriteString("[Paragraph]\n")
 				for _, word := range paragraph.Words {
 					if ocr.isValidLang(word.Property.GetDetectedLanguages()) {
 						for _, symbol := range word.Symbols {
@@ -56,13 +52,18 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 						}
 						sb.Write([]byte(" "))
 					} else {
-						ocr.log.Info("Skipping word", zap.Any("lang", word.Property.GetDetectedLanguages()))
+						ocr.log.Debug("Skipping word", zap.Any("lang", word.Property.GetDetectedLanguages()), zap.Any("text", word.Symbols))
 					}
 				}
 			}
-			sb.WriteString("\n")
+
 			pblock.Text = sb.String()
-			page.Blocks = append(page.Blocks, pblock)
+
+			if len(pblock.Text) > 0 && pblock.Text != " " && pblock.Text != "\n" {
+				page.Blocks = append(page.Blocks, pblock)
+			} else {
+				ocr.log.Info("Skipping block", zap.Any("block", pblock), zap.Any("text", pblock.Text))
+			}
 
 		}
 	}

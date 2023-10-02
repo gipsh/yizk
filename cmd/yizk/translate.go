@@ -3,6 +3,7 @@ package yizk
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/gipsh/yizk/translator"
 	"github.com/spf13/cobra"
@@ -21,7 +22,10 @@ var translateCmd = &cobra.Command{
 		ctx := context.Background()
 
 		if metadataFile != "" {
-			executeTranslationByMetadataFile(ctx, metadataFile)
+			err := executeTranslationByMetadataFile(ctx, metadataFile)
+			if err != nil {
+				log.Fatalln("Error rendering file", err.Error())
+			}
 			return
 		}
 

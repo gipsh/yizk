@@ -115,6 +115,7 @@ func (mr *MetadataRenderer) RenderPage(filename string) error {
 
 	newFilename := fileNameOnly + ".render" + ".png"
 
+	mr.log.Info("Saving file", zap.String("fileName", newFilename))
 	return WritePNGFile(newFilename, newImage)
 
 }
