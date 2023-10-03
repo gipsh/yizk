@@ -2,6 +2,7 @@
 Download, OCR, translate and render [yizkor books](https://en.wikipedia.org/wiki/Yizkor_books)
 
 This tool helps in the translation of yizkor books that are usually in yidish and hebrew. 
+
 It OCR and translate the texts and then tries to rebuild the page (including the images) with the translated text. 
 
 It uses the gooogle cloud vision and translation API 
