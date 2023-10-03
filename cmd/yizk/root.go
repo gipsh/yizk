@@ -7,6 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Parameters
+var bookName string
+var initialPage int
+var pages int
+var metadataFile string
+var metadataFolder string
+
 var rootCmd = &cobra.Command{
 	Use:   "yizk",
 	Short: "run the different services of the processing pipeline",

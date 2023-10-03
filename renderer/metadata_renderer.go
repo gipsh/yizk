@@ -60,7 +60,7 @@ func (mr *MetadataRenderer) RenderFolder(folder string) error {
 			mr.log.Info("Processing file", zap.String("fileName", f.Name()))
 			err = mr.RenderPage(filepath.Join(folder, f.Name()))
 			if err != nil {
-				return err
+				mr.log.Error("Error rendering file", zap.String("fileName", f.Name()), zap.Error(err))
 			}
 		}
 	}

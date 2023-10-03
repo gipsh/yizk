@@ -30,7 +30,10 @@ var translateCmd = &cobra.Command{
 		}
 
 		if metadataFolder != "" {
-			executeTranslationByMetadataFolder(ctx, metadataFolder)
+			err := executeTranslationByMetadataFolder(ctx, metadataFolder)
+			if err != nil {
+				log.Fatalln("Error rendering folder", err.Error())
+			}
 			return
 		}
 

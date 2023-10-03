@@ -58,7 +58,7 @@ func (mdt *MetadataTranslator) TranslateFolder(ctx context.Context, folder strin
 
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
-			mdt.log.Info("Processing file", zap.String("fileName", f.Name()))
+			mdt.log.Info("Processing file", zap.String("fileName", filepath.Join(folder, f.Name())))
 			err = mdt.TranslatePage(ctx, filepath.Join(folder, f.Name()))
 			if err != nil {
 				mdt.log.Error("Error translating file", zap.String("fileName", f.Name()), zap.Error(err))

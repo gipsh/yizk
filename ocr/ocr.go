@@ -45,7 +45,7 @@ func (ocr *OcrService) ProcessByFolder(ctx context.Context, folder string) error
 			ocr.log.Info("Processing file", zap.String("fileName", f.Name()))
 			err = ocr.ProcessByMetadataFile(ctx, filepath.Join(folder, f.Name()))
 			if err != nil {
-				return err
+				ocr.log.Error("Error processing file", zap.String("fileName", f.Name()), zap.Error(err))
 			}
 		}
 	}

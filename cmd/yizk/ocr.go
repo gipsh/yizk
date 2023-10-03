@@ -33,12 +33,6 @@ var ocrCmd = &cobra.Command{
 	},
 }
 
-var bookName string
-var initialPage int
-var pages int
-var metadataFile string
-var metadataFolder string
-
 func init() {
 	rootCmd.AddCommand(ocrCmd)
 	ocrCmd.Flags().StringVarP(&metadataFile, "file", "m", "", "fullpath of json metadata file. If provided, will only process this file")
