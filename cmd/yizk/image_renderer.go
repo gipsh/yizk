@@ -45,7 +45,7 @@ func init() {
 	renderCmd.MarkFlagsMutuallyExclusive("file", "folder")
 }
 
-func getRenderService() *renderer.MetadataRenderer {
+func getRenderService() renderer.Renderer {
 
 	log, err := zap.NewDevelopment()
 	if err != nil {
@@ -61,7 +61,7 @@ func executeRenderByMetadataFile(metadataFile string) error {
 
 	renderService := getRenderService()
 
-	err := renderService.RenderPage(metadataFile)
+	_, err := renderService.RenderPage(metadataFile)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

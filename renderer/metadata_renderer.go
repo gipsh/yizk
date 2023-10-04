@@ -25,7 +25,7 @@ type MetadataRenderer struct {
 	log *zap.Logger
 }
 
-func NewMetadataRenderer(log *zap.Logger) *MetadataRenderer {
+func NewMetadataRenderer(log *zap.Logger) Renderer {
 	return &MetadataRenderer{
 		log: log,
 	}
@@ -58,7 +58,7 @@ func (mr *MetadataRenderer) RenderFolder(folder string) error {
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
 			mr.log.Info("Processing file", zap.String("fileName", f.Name()))
-			err = mr.RenderPage(filepath.Join(folder, f.Name()))
+			_, err = mr.RenderPage(filepath.Join(folder, f.Name()))
 			if err != nil {
 				mr.log.Error("Error rendering file", zap.String("fileName", f.Name()), zap.Error(err))
 			}
@@ -68,23 +68,23 @@ func (mr *MetadataRenderer) RenderFolder(folder string) error {
 	return nil
 }
 
-func (mr *MetadataRenderer) RenderPage(filename string) error {
+func (mr *MetadataRenderer) RenderPage(filename string) (string, error) {
 
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var page model.YizkPage
 	err = json.Unmarshal([]byte(file), &page)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// open original image file
 	img, err := ReadFile(page.Filename)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	b := (*img).Bounds()
@@ -116,7 +116,11 @@ func (mr *MetadataRenderer) RenderPage(filename string) error {
 	newFilename := fileNameOnly + ".render" + ".png"
 
 	mr.log.Info("Saving file", zap.String("fileName", newFilename))
-	return WritePNGFile(newFilename, newImage)
+	err = WritePNGFile(newFilename, newImage)
+	if err != nil {
+		return "", err
+	}
+	return "", nil
 
 }
 
