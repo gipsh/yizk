@@ -25,7 +25,14 @@ var textCmd = &cobra.Command{
 		}
 
 		if metadataFolder != "" {
-			err := executeTextRenderByMetadataFolder(metadataFolder)
+			var output *string
+			if outputTextFile == "" {
+				output = nil
+			} else {
+				output = &outputTextFile
+			}
+
+			err := executeTextRenderByMetadataFolder(metadataFolder, output)
 			if err != nil {
 				log.Fatalln("Error rendering folder", metadataFolder)
 			}
@@ -40,6 +47,7 @@ func init() {
 	rootCmd.AddCommand(textCmd)
 	textCmd.Flags().StringVarP(&metadataFile, "file", "m", "", "fullpath of json metadata file. If provided, will only process this file")
 	textCmd.Flags().StringVarP(&metadataFolder, "folder", "f", "", "fullpath of folder with json metadata files. If provided, will only process this folder")
+	textCmd.Flags().StringVarP(&outputTextFile, "output", "o", "", "output text file")
 	textCmd.MarkFlagsMutuallyExclusive("file", "folder")
 }
 
@@ -68,11 +76,11 @@ func executeTextRenderByMetadataFile(metadataFile string) error {
 	return nil
 }
 
-func executeTextRenderByMetadataFolder(metadataFolder string) error {
+func executeTextRenderByMetadataFolder(metadataFolder string, outputFile *string) error {
 
 	renderService := getTextRenderService()
 
-	err := renderService.RenderFolder(metadataFolder)
+	err := renderService.RenderFolder(metadataFolder, outputFile)
 	if err != nil {
 		return err
 	}

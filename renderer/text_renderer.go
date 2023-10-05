@@ -24,10 +24,15 @@ func NewTextRenderer(log *zap.Logger) Renderer {
 	}
 }
 
-func (mr *TextRenderer) RenderFolder(folder string) error {
+func (mr *TextRenderer) RenderFolder(folder string, outputFilename *string) error {
 
-	x := filepath.Base(folder)
-	textFile := fmt.Sprintf("book-%s.txt", x)
+	var textFile string
+	if outputFilename != nil {
+		textFile = *outputFilename
+	} else {
+		x := filepath.Base(folder)
+		textFile = fmt.Sprintf("book-%s.txt", x)
+	}
 
 	mr.log.Info("Saving file", zap.String("fileName", textFile))
 

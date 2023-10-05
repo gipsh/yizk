@@ -74,6 +74,16 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 
 func WriteMetadataFile(filename string, page *model.YizkPage) error {
 
+	// buffer := &bytes.Buffer{}
+	// enc := json.NewEncoder(buffer)
+	// enc.SetEscapeHTML(false)
+	// enc.SetIndent("", " ")
+
+	// err := enc.Encode(page)
+	// if err != nil {
+	// 	return err
+	// }
+
 	file, err := json.MarshalIndent(page, "", " ")
 	if err != nil {
 		return err

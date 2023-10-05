@@ -18,7 +18,6 @@ var renderCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if metadataFile != "" {
-			fmt.Println("hola")
 			err := executeRenderByMetadataFile(metadataFile)
 			if err != nil {
 				log.Fatalln("Error rendering file", metadataFile)
@@ -74,7 +73,7 @@ func executeRenderByMetadataFolder(metadataFolder string) error {
 
 	renderService := getRenderService()
 
-	err := renderService.RenderFolder(metadataFolder)
+	err := renderService.RenderFolder(metadataFolder, nil)
 	if err != nil {
 		return err
 	}

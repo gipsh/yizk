@@ -47,7 +47,7 @@ func (mr *MetadataRenderer) MeasureString(s string) (w, h float64) {
 	return float64(a >> 6), mr.fontHeight()
 }
 
-func (mr *MetadataRenderer) RenderFolder(folder string) error {
+func (mr *MetadataRenderer) RenderFolder(folder string, outputFile *string) error {
 
 	files, err := os.ReadDir(folder)
 	if err != nil {

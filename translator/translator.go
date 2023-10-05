@@ -3,6 +3,7 @@ package translator
 import (
 	"context"
 	"fmt"
+	"html"
 	"os"
 	"strings"
 
@@ -80,7 +81,9 @@ func (ts *TranslatorService) Translate(ctx context.Context, text string) (string
 		sb.Write([]byte("\n"))
 	}
 
-	return sb.String(), nil
+	//ts.log.Debug("Text", zap.String("text", html.UnescapeString(sb.String())))
+
+	return html.UnescapeString(sb.String()), nil
 }
 
 // if text is grater than 2000 chars then split it by lines and translate each line

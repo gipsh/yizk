@@ -13,6 +13,7 @@ var initialPage int
 var pages int
 var metadataFile string
 var metadataFolder string
+var outputTextFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "yizk",
