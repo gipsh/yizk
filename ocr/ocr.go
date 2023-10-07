@@ -128,35 +128,10 @@ func (ocr *OcrService) saveToFile(fileName string, data string) error {
 }
 
 // filter paragraphs by languge
-func (ocr *OcrService) filterParagraphsByLanguage(blocks []*visionpb.Block) string {
-
-	var sb strings.Builder
-
-	for _, block := range blocks {
-		if block.BlockType == visionpb.Block_TEXT {
-			for _, paragraph := range block.Paragraphs {
-				//sb.WriteString("[Paragraph]\n")
-				for _, word := range paragraph.Words {
-					if ocr.isValidLang(word.Property.GetDetectedLanguages()) {
-						for _, symbol := range word.Symbols {
-							sb.WriteString(symbol.GetText())
-						}
-						sb.Write([]byte(" "))
-					} else {
-						ocr.log.Info("Skipping word", zap.Any("lang", word.Property.GetDetectedLanguages()))
-					}
-				}
-			}
-			sb.WriteString("\n")
-		}
-	}
-
-	return sb.String()
-}
 
 func (ocr *OcrService) isValidLang(langs []*visionpb.TextAnnotation_DetectedLanguage) bool {
 	if langs == nil {
-		return false
+		return true // no language detected
 	}
 
 	for _, lang := range langs {

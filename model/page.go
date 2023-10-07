@@ -13,7 +13,7 @@ type YizkPoint struct {
 type YizkBlock struct {
 	//Points           []YizkPoint `json:"points"`
 	UpperLeftPoint   YizkPoint `json:"upper_left_point"`
-	BottomRightPoint YizkPoint `json:"bottom_right"`
+	BottomRightPoint YizkPoint `json:"bottom_right_point"`
 	Text             string    `json:"text"`
 	OriginLanguage   string    `json:"origin_language"`
 	TargetLanguage   string    `json:"target_language"`
@@ -21,10 +21,11 @@ type YizkBlock struct {
 }
 
 type YizkPage struct {
-	Id       string      `json:"id"`
-	Blocks   []YizkBlock `json:"blocks"`
-	Filename string      `json:"filename"`
-	Order    int         `json:"order"`
+	Id         string      `json:"id"` // page id in the original document
+	Blocks     []YizkBlock `json:"blocks"`
+	Filename   string      `json:"filename"`
+	Order      int         `json:"order"`       // relative order in the document
+	PageNumber string      `json:"page_number"` // page number in the original document
 }
 
 func ReadMetadata(filename string) (*YizkPage, error) {

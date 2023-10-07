@@ -84,6 +84,7 @@ func (mr *TextRenderer) RenderPage(filename string) (string, error) {
 
 	var sb strings.Builder
 
+	sb.Write([]byte("--\n"))
 	for _, block := range page.Blocks {
 
 		sb.Write([]byte(block.TranslatedText))
@@ -93,7 +94,7 @@ func (mr *TextRenderer) RenderPage(filename string) (string, error) {
 	}
 
 	// add page number
-	sb.Write([]byte(fmt.Sprintf("Page %d\n", page.Order)))
+	sb.Write([]byte(fmt.Sprintf("Page %s\n--\n", page.PageNumber)))
 	sb.Write([]byte("\n\n"))
 
 	// save to file

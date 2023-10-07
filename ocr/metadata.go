@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 
 	"cloud.google.com/go/vision/v2/apiv1/visionpb"
@@ -58,16 +59,21 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 			}
 
 			// remove double quotes from text (they break the json) and the translation
-			// WARNING: this is a hack, need to find a better way to do this
+			// WARNING: seems the double yud is detected as `"`. This is a hack, need to find a better way to do this
 			pblock.Text = strings.ReplaceAll(sb.String(), `"`, ``)
 			//pblock.Text = sb.String()
 
 			if len(pblock.Text) > 0 && pblock.Text != " " && pblock.Text != "\n" {
-				page.Blocks = append(page.Blocks, pblock)
+				ip, pn := ocr.isPageNumber(pblock.Text)
+				if ip {
+					ocr.log.Info("Found page number", zap.String("page", pn))
+					page.PageNumber = pn
+				} else {
+					page.Blocks = append(page.Blocks, pblock)
+				}
 			} else {
 				ocr.log.Info("Skipping block", zap.Any("block", pblock), zap.Any("text", pblock.Text))
 			}
-
 		}
 	}
 
@@ -75,17 +81,15 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 
 }
 
+func (ocr *OcrService) isPageNumber(blockText string) (bool, string) {
+	text := strings.ReplaceAll(blockText, " ", "")
+	text = strings.ReplaceAll(text, "\n", "")
+
+	_, err := strconv.Atoi(text)
+	return err == nil, text
+}
+
 func WriteMetadataFile(filename string, page *model.YizkPage) error {
-
-	// buffer := &bytes.Buffer{}
-	// enc := json.NewEncoder(buffer)
-	// enc.SetEscapeHTML(false)
-	// enc.SetIndent("", " ")
-
-	// err := enc.Encode(page)
-	// if err != nil {
-	// 	return err
-	// }
 
 	file, err := json.MarshalIndent(page, "", " ")
 	if err != nil {
