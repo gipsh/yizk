@@ -57,7 +57,10 @@ func (ocr *OcrService) generateMetadata(originalImage string, blocks []*visionpb
 				}
 			}
 
-			pblock.Text = sb.String()
+			// remove double quotes from text (they break the json) and the translation
+			// WARNING: this is a hack, need to find a better way to do this
+			pblock.Text = strings.ReplaceAll(sb.String(), `"`, ``)
+			//pblock.Text = sb.String()
 
 			if len(pblock.Text) > 0 && pblock.Text != " " && pblock.Text != "\n" {
 				page.Blocks = append(page.Blocks, pblock)

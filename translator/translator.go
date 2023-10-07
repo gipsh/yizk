@@ -89,11 +89,11 @@ func (ts *TranslatorService) Translate(ctx context.Context, text string) (string
 // if text is grater than 2000 chars then split it by lines and translate each line
 func (ts *TranslatorService) PreProcessText(text string) []string {
 	var lines []string
-	if len(text) > 5000 {
+	if len(text) > 2000 {
 		// need to split by line breaks
 		lines = strings.Split(text, ".")
 	} else {
-		lines = append(lines, text)
+		lines = append(lines, text+".")
 	}
 
 	return lines

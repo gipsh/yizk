@@ -92,6 +92,10 @@ func (mr *TextRenderer) RenderPage(filename string) (string, error) {
 
 	}
 
+	// add page number
+	sb.Write([]byte(fmt.Sprintf("Page %d\n", page.Order)))
+	sb.Write([]byte("\n\n"))
+
 	// save to file
 	fileNameOnly := strings.TrimSuffix(page.Filename, filepath.Ext(page.Filename))
 
